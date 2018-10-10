@@ -1,0 +1,25 @@
+{
+    "name": "sokolow-residence",
+    "version": "1.0.0",
+    "description": "the ecobee app in a lambda for my house",
+    "main": "index.js",
+    "bin": {
+        "current-temp": "./bin/current-temp.js"
+    },
+    "scripts": {
+        "once": "node once.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "John-Charles D. Sokolow",
+    "license": "ISC",
+    "dependencies": {
+        "aws-sdk": "^2.315.0",
+        "lodash": "^4.17.10",
+        "percentile": "^1.2.1",
+        "request": "^2.87.0",
+        "request-promise-native": "^1.0.5"
+    },
+    "devDependencies": {
+        "lodash.reject": "^4.6.0"
+    }
+}
