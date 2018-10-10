@@ -59,19 +59,24 @@ function tenMinuteHighLowSensor(sensors) {
     return [selectors[minuteCode](sensors, (sensor) => sensor.temprature)];
 }
 
+// const forecast = {
+//     currently: {
+//         temperature: 30
+//     }
+// };
+
 async function updateEcobee() {
 
     const s3 = new SR.S3();
     const darkSky = new SR.DarkSky(s3);
     const tokenSource = new SR.TokenSource(s3);
     const ecobee = new SR.Ecobee(tokenSource);
-    const forecast = await darkSky.getForecast();
-    // const forecast = {
-    //     currently: {
-    //         temperature: 30
-    //     }
-    // };
-    const thermostats = await ecobee.getThermostats();
+    const forecastPromise = darkSky.getForecast();
+    const thermostatsPromise = ecobee.getThermostats();
+
+    const forecast = await forecastPromise;
+    const thermostats = await thermostatsPromise;
+
     const setting = settings.find((setting) =>
         setting.threshold(forecast.currently.temperature));
 
