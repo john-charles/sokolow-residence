@@ -56,7 +56,9 @@ function tenMinuteHighLowSensor(sensors) {
     };
 
     const minuteCode = Math.floor(new Date().getMinutes() / 10);
-    return [selectors[minuteCode](sensors, (sensor) => sensor.temprature)];
+    const selector = selectors[minuteCode];
+    console.log('using selector: ', selector.name);
+    return [selector(sensors, (sensor) => sensor.temprature)];
 }
 
 // const forecast = {
@@ -91,14 +93,18 @@ async function updateEcobee() {
     }
 
     const program = diningRoom.getProgram();
-    const sensors = setting.sensors(diningRoom.getSensors()).map(function (sensor) {
+    let sensors = setting.sensors(diningRoom.getSensors());
+
+
+    console.log('using sensors: ', sensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
+
+    sensors = sensors.map(function (sensor) {
         return {
             id: `${sensor.id}:1`,
             name: sensor.name
         }
     });
 
-    console.log('using sensors: ', sensors);
 
     program.climates.forEach(function (climate) {
         climate.heatTemp = Math.floor(setting.heatTemp * 10);
