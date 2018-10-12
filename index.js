@@ -69,11 +69,15 @@ async function updateEcobee() {
     const darkSky = new SR.DarkSky(s3);
     const tokenSource = new SR.TokenSource(s3);
     const ecobee = new SR.Ecobee(tokenSource);
+
+    console.time('get forecast + thermostats');
     const forecastPromise = darkSky.getForecast();
     const thermostatsPromise = ecobee.getThermostats();
 
     const forecast = await forecastPromise;
     const thermostats = await thermostatsPromise;
+    console.timeEnd('get forecast + thermostats');
+
 
     const setting = settings.find((setting) =>
         setting.threshold(forecast.currently.temperature));
@@ -89,10 +93,14 @@ async function updateEcobee() {
     }
 
     const program = diningRoom.getProgram();
-    let sensors = setting.sensors(diningRoom.getSensors());
+    let sensors = diningRoom.getSensors();
+
+    sensors = _.reject(sensors, (sensor) => sensor.name === 'Bedroom');
+    console.log("all sensors: ", sensors.map((sensor) => sensor.name));
+    sensors = setting.sensors(sensors);
 
 
-    console.log('using sensors: ', sensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
+    console.log('chosen sensors: ', sensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
 
     sensors = sensors.map(function (sensor) {
         return {
