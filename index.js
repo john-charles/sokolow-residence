@@ -23,14 +23,14 @@ const settings = [
         name: "Cool Day",
         heatTemp: 70,
         coolTemp: 73,
-        sensors: tenMinuteHighLowSensor,
+        sensors: tenMinuteHighLowSensor(3),
         threshold: (currentTemp) => currentTemp > 32 && currentTemp < 65
     },
     {
         name: "Cold Day",
         heatTemp: 71,
         coolTemp: 75,
-        sensors: tenMinuteHighLowSensor,
+        sensors: tenMinuteHighLowSensor(2),
         threshold: (currentTemp) => currentTemp <= 32
     }
 ];
@@ -45,22 +45,24 @@ function withoutColdestSensor(sensors) {
     return _.reject(sensors, (sensor) => sensor.id === minSensor.id);
 }
 
-function tenMinuteHighLowSensor(sensors) {
+function tenMinuteHighLowSensor(cph) {
+    return (sensors) => {
 
-    const minuteCode = Math.floor(new Date().getMinutes() / 10);
-    const maxSensor = _.maxBy(sensors, (sensor) => sensor.temprature);
-    const minSensor = _.minBy(sensors, (sensor) => sensor.temprature);
+        const minuteCode = Math.floor(new Date().getMinutes() / 10);
+        const maxSensor = _.maxBy(sensors, (sensor) => sensor.temprature);
+        const minSensor = _.minBy(sensors, (sensor) => sensor.temprature);
 
-    if (maxSensor.temprature > 72) {
-        return [maxSensor];
+        if (maxSensor.temprature > 72) {
+            return [maxSensor];
+        }
+
+        if (minuteCode % cph === 0) {
+            return [minSensor];
+        } else {
+            return [maxSensor];
+        }
+
     }
-
-    if ([0, 2, 4].indexOf(minuteCode) > -1) {
-        return [minSensor];
-    } else {
-        return [maxSensor];
-    }
-
 }
 
 async function updateEcobee() {
