@@ -46,26 +46,22 @@ function withoutColdestSensor(sensors) {
 }
 
 function tenMinuteHighLowSensor(sensors) {
-    const selectors = {
-        0: _.minBy,
-        1: _.maxBy,
-        2: _.minBy,
-        3: _.maxBy,
-        4: _.minBy,
-        5: _.maxBy
-    };
 
     const minuteCode = Math.floor(new Date().getMinutes() / 10);
-    const selector = selectors[minuteCode];
-    console.log('using selector: ', selector.name);
-    return [selector(sensors, (sensor) => sensor.temprature)];
-}
+    const maxSensor = _.maxBy(sensors, (sensor) => sensor.temprature);
+    const minSensor = _.minBy(sensors, (sensor) => sensor.temprature);
 
-// const forecast = {
-//     currently: {
-//         temperature: 30
-//     }
-// };
+    if (maxSensor.temprature > 72) {
+        return [maxSensor];
+    }
+
+    if ([0, 2, 4].indexOf(minuteCode) > -1) {
+        return [minSensor];
+    } else {
+        return [maxSensor];
+    }
+
+}
 
 async function updateEcobee() {
 

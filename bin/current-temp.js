@@ -22,9 +22,17 @@ async function main() {
             console.log(`    equipment ${stat.getStatus()}`);
             console.log(`    sensors:`);
 
-            stat.getSensors().forEach(function (sensor) {
+            const sensors = stat.getSensors();
+
+            sensors.forEach(function (sensor) {
                 console.log(`        ${sensor.name}: ${sensor.temprature}`);
             });
+
+            const avgTemp = sensors.map((sensor) => sensor.temprature)
+                .reduce((acc, value) => acc + value, 0) / sensors.length;
+
+            console.log(`    avg sensor temp: ${avgTemp}`);
+
 
         }
 
