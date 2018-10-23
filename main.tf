@@ -100,7 +100,7 @@ EOF
 
 resource "aws_cloudwatch_event_rule" "ecobee-update-rule" {
   name = "ecobee-update-rule"
-  schedule_expression = "cron(*/10 * * * ? *)"
+  schedule_expression = "cron(*/30 * * * ? *)"
   depends_on = [
     "aws_lambda_function.ecobee-update-lambda"]
 }

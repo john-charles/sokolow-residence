@@ -6,16 +6,22 @@ const _ = require('lodash');
 const settings = [
     {
         name: "Hot Day",
-        heatTemp: 70,
+        heatTemp: 69,
         coolTemp: 73,
         sensors: withoutColdestSensor,
+        awayHeatTemp: 60,
+        awayCoolTemp: 73,
+        awaySensors: coldestSensor,
         threshold: (currentTemp) => currentTemp >= 78
     },
     {
         name: "Warm Day",
-        heatTemp: 70,
+        heatTemp: 69,
         coolTemp: 73,
         sensors: allSensors,
+        awayHeatTemp: 60,
+        awayCoolTemp: 73,
+        awaySensors: warmestSensor,
         threshold: (currentTemp) => currentTemp >= 65 && currentTemp < 78
 
     },
@@ -23,15 +29,21 @@ const settings = [
         name: "Cool Day",
         heatTemp: 70,
         coolTemp: 73,
-        sensors: tenMinuteHighLowSensor(3),
-        threshold: (currentTemp) => currentTemp > 32 && currentTemp < 65
+        sensors: allSensors,
+        awayHeatTemp: 67,
+        awayCoolTemp: 73,
+        awaySensors: warmestSensor,
+        threshold: (currentTemp) => currentTemp > 45 && currentTemp < 65
     },
     {
         name: "Cold Day",
         heatTemp: 71,
         coolTemp: 75,
-        sensors: tenMinuteHighLowSensor(2),
-        threshold: (currentTemp) => currentTemp <= 32
+        sensors: allSensors,
+        awayHeatTemp: 67,
+        awayCoolTemp: 78,
+        awaySensors: warmestSensor,
+        threshold: (currentTemp) => currentTemp <= 45
     }
 ];
 
@@ -45,25 +57,34 @@ function withoutColdestSensor(sensors) {
     return _.reject(sensors, (sensor) => sensor.id === minSensor.id);
 }
 
-function tenMinuteHighLowSensor(cph) {
-    return (sensors) => {
-
-        const minuteCode = Math.floor(new Date().getMinutes() / 10);
-        const maxSensor = _.maxBy(sensors, (sensor) => sensor.temprature);
-        const minSensor = _.minBy(sensors, (sensor) => sensor.temprature);
-
-        if (maxSensor.temprature > 72) {
-            return [maxSensor];
-        }
-
-        if (minuteCode % cph === 0) {
-            return [minSensor];
-        } else {
-            return [maxSensor];
-        }
-
-    }
+function warmestSensor(sensors) {
+    return [_.maxBy(sensors, (sensor) => sensor.temprature)];
 }
+
+function coldestSensor(sensors) {
+    return [_.minBy(sensors, (sensor) => sensor.temprature)];
+}
+
+// this worked, but needs more finesse.
+// function tenMinuteHighLowSensor(cph) {
+//     return (sensors) => {
+//
+//         const minuteCode = Math.floor(new Date().getMinutes() / 10);
+//         const maxSensor = _.maxBy(sensors, (sensor) => sensor.temprature);
+//         const minSensor = _.minBy(sensors, (sensor) => sensor.temprature);
+//
+//         if (maxSensor.temprature > 72) {
+//             return [maxSensor];
+//         }
+//
+//         if (minuteCode % cph === 0) {
+//             return sensors;
+//         } else {
+//             return [maxSensor];
+//         }
+//
+//     }
+// }
 
 async function updateEcobee() {
 
@@ -95,27 +116,36 @@ async function updateEcobee() {
     }
 
     const program = diningRoom.getProgram();
-    let sensors = diningRoom.getSensors();
+    const allSensors = diningRoom.getSensors();
 
-    sensors = _.reject(sensors, (sensor) => sensor.name === 'Bedroom');
-    console.log("all sensors: ", sensors.map((sensor) => sensor.name));
-    sensors = setting.sensors(sensors);
+    console.log("all sensors: ", allSensors.map((sensor) => sensor.name));
+    const homeSensors = setting.sensors(allSensors);
+    const awaySensors = setting.awaySensors(allSensors);
 
+    console.log('chosen sensors for home: ', homeSensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
+    console.log('chosen sensors for away: ', awaySensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
 
-    console.log('chosen sensors: ', sensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
-
-    sensors = sensors.map(function (sensor) {
+    function mapSensors(sensor) {
         return {
             id: `${sensor.id}:1`,
             name: sensor.name
         }
-    });
-
+    }
 
     program.climates.forEach(function (climate) {
-        climate.heatTemp = Math.floor(setting.heatTemp * 10);
-        climate.coolTemp = Math.floor(setting.cooltemp * 10);
-        climate.sensors = sensors;
+
+        if (climate.name !== 'Away') {
+
+            climate.heatTemp = Math.floor(setting.heatTemp * 10);
+            climate.coolTemp = Math.floor(setting.cooltemp * 10);
+            climate.sensors = homeSensors.map(mapSensors);
+
+        } else {
+
+            climate.heatTemp = Math.floor(setting.awayHeatTemp * 10);
+            climate.coolTemp = Math.floor(setting.awayCoolTemp * 10);
+            climate.sensors = awaySensors.map(mapSensors);
+        }
     });
 
 
