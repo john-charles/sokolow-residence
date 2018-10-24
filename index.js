@@ -9,8 +9,6 @@ const settings = [
         heatTemp: 69,
         coolTemp: 73,
         sensors: withoutColdestSensor,
-        awayHeatTemp: 60,
-        awayCoolTemp: 73,
         awaySensors: coldestSensor,
         threshold: (currentTemp) => currentTemp >= 78
     },
@@ -30,8 +28,6 @@ const settings = [
         heatTemp: 70,
         coolTemp: 73,
         sensors: allSensors,
-        awayHeatTemp: 67,
-        awayCoolTemp: 73,
         awaySensors: warmestSensor,
         threshold: (currentTemp) => currentTemp > 45 && currentTemp < 65
     },
@@ -40,7 +36,7 @@ const settings = [
         heatTemp: 71,
         coolTemp: 75,
         sensors: allSensors,
-        awayHeatTemp: 67,
+        awayHeatTemp: 68,
         awayCoolTemp: 78,
         awaySensors: warmestSensor,
         threshold: (currentTemp) => currentTemp <= 45
@@ -101,15 +97,17 @@ async function updateEcobee() {
     const thermostats = await thermostatsPromise;
     console.timeEnd('get forecast + thermostats');
 
+    const hourlyData = forecast.hourly.data.slice(0, 3);
+    const currentTemp = hourlyData.map((hour) => hour.temperature)
+        .reduce((acc, value) => acc + value) / hourlyData.length;
 
-    const setting = settings.find((setting) =>
-        setting.threshold(forecast.currently.temperature));
+    console.log('current-tem: ', currentTemp);
+    console.log(`Next three hours data: ${hourlyData.map((hour) => `${hour.temperature}f`).join(" ")}`);
 
-
-    console.log('current, ', forecast.currently.temperature);
-    console.log('temps: ', setting);
-
+    const setting = settings.find((setting) => setting.threshold(currentTemp));
     const diningRoom = thermostats.getThermostat("Dining Room");
+
+    console.log('selected setting: ', setting);
 
     if (!diningRoom) {
         throw new Error("Could not find thermostat to update");
@@ -118,12 +116,12 @@ async function updateEcobee() {
     const program = diningRoom.getProgram();
     const allSensors = diningRoom.getSensors();
 
-    console.log("all sensors: ", allSensors.map((sensor) => sensor.name));
+    console.log("all sensors: ", allSensors.map((sensor) => sensor.name).join(", "));
     const homeSensors = setting.sensors(allSensors);
     const awaySensors = setting.awaySensors(allSensors);
 
-    console.log('chosen sensors for home: ', homeSensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
-    console.log('chosen sensors for away: ', awaySensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`));
+    console.log('chosen sensors for home: ', homeSensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`).join(", "));
+    console.log('chosen sensors for away: ', awaySensors.map((sensor) => `${sensor.name} -- ${sensor.temprature}`).join(", "));
 
     function mapSensors(sensor) {
         return {
@@ -142,8 +140,11 @@ async function updateEcobee() {
 
         } else {
 
-            climate.heatTemp = Math.floor(setting.awayHeatTemp * 10);
-            climate.coolTemp = Math.floor(setting.awayCoolTemp * 10);
+            const heatTemp = setting.awayHeatTemp || setting.heatTemp;
+            const coolTemp = setting.awayCoolTemp || setting.coolTemp;
+
+            climate.heatTemp = Math.floor(heatTemp * 10);
+            climate.coolTemp = Math.floor(coolTemp * 10);
             climate.sensors = awaySensors.map(mapSensors);
         }
     });
