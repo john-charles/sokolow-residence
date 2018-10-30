@@ -3,10 +3,13 @@
 const SR = require("./lib");
 const _ = require('lodash');
 
+const HEAT_OFF = 60;
+const COOL_OFF = 80;
+
 const settings = [
     {
         name: "Hot Day",
-        heatTemp: 69,
+        heatTemp: HEAT_OFF,
         coolTemp: 73,
         sensors: withoutColdestSensor,
         awaySensors: coldestSensor,
@@ -14,23 +17,34 @@ const settings = [
     },
     {
         name: "Warm Day",
-        heatTemp: 69,
+        heatTemp: HEAT_OFF,
         coolTemp: 73,
         sensors: allSensors,
-        awayHeatTemp: 60,
+        awayHeatTemp: HEAT_OFF,
         awayCoolTemp: 73,
         awaySensors: allSensors,
-        threshold: (currentTemp) => currentTemp >= 60 && currentTemp < 78
+        threshold: (currentTemp) => currentTemp >= 65 && currentTemp < 78
 
     },
     {
-        name: "Cool Day",
-        heatTemp: 71,
+        name: "Mild Day",
+        heatTemp: 69,
         coolTemp: 73,
         sensors: allSensors,
-        awayHeatTemp: 69,
+        awayHeatTemp: HEAT_OFF,
+        awayCoolTemp: COOL_OFF,
         awaySensors: warmestSensor,
-        threshold: (currentTemp) => currentTemp > 45 && currentTemp < 65
+        threshold: (currentTemp) => currentTemp >= 55 && currentTemp < 65
+    },
+    {
+        name: "Cool Day",
+        heatTemp: 70,
+        coolTemp: COOL_OFF,
+        sensors: allSensors,
+        awayHeatTemp: HEAT_OFF,
+        awayCoolTemp: COOL_OFF,
+        awaySensors: warmestSensor,
+        threshold: (currentTemp) => currentTemp > 45 && currentTemp < 55
     },
     {
         name: "Cold Day",
