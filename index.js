@@ -19,15 +19,16 @@ const settings = [
         sensors: allSensors,
         awayHeatTemp: 60,
         awayCoolTemp: 73,
-        awaySensors: warmestSensor,
-        threshold: (currentTemp) => currentTemp >= 65 && currentTemp < 78
+        awaySensors: allSensors,
+        threshold: (currentTemp) => currentTemp >= 60 && currentTemp < 78
 
     },
     {
         name: "Cool Day",
-        heatTemp: 70,
+        heatTemp: 71,
         coolTemp: 73,
         sensors: allSensors,
+        awayHeatTemp: 69,
         awaySensors: warmestSensor,
         threshold: (currentTemp) => currentTemp > 45 && currentTemp < 65
     },
@@ -35,9 +36,8 @@ const settings = [
         name: "Cold Day",
         heatTemp: 71,
         coolTemp: 75,
-        sensors: allSensors,
         awayHeatTemp: 68,
-        awayCoolTemp: 78,
+        sensors: allSensors,
         awaySensors: warmestSensor,
         threshold: (currentTemp) => currentTemp <= 45
     }
