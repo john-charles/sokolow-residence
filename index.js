@@ -8,52 +8,10 @@ const COOL_OFF = 80;
 
 const settings = [
     {
-        name: "Hot Day",
-        heatTemp: HEAT_OFF,
-        coolTemp: 73,
-        sensors: withoutColdestSensor,
-        awaySensors: coldestSensor,
-        threshold: (currentTemp) => currentTemp >= 78
-    },
-    {
-        name: "Warm Day",
-        heatTemp: HEAT_OFF,
-        coolTemp: 73,
-        sensors: allSensors,
-        awayHeatTemp: HEAT_OFF,
-        awayCoolTemp: 73,
-        awaySensors: allSensors,
-        threshold: (currentTemp) => currentTemp >= 65 && currentTemp < 78
-
-    },
-    {
-        name: "Mild Day",
-        heatTemp: 69,
-        coolTemp: 73,
-        sensors: allSensors,
-        awayHeatTemp: HEAT_OFF,
-        awayCoolTemp: COOL_OFF,
+        name: "Any Day",
+        sensors: warmestNSensors(2),
         awaySensors: warmestSensor,
-        threshold: (currentTemp) => currentTemp >= 55 && currentTemp < 65
-    },
-    {
-        name: "Cool Day",
-        heatTemp: 70,
-        coolTemp: COOL_OFF,
-        sensors: allSensors,
-        awayHeatTemp: HEAT_OFF,
-        awayCoolTemp: COOL_OFF,
-        awaySensors: warmestSensor,
-        threshold: (currentTemp) => currentTemp > 45 && currentTemp < 55
-    },
-    {
-        name: "Cold Day",
-        heatTemp: 71,
-        coolTemp: 75,
-        awayHeatTemp: 68,
-        sensors: allSensors,
-        awaySensors: warmestSensor,
-        threshold: (currentTemp) => currentTemp <= 45
+        threshold: (currentTemp) => true
     }
 ];
 
@@ -69,6 +27,15 @@ function withoutColdestSensor(sensors) {
 
 function warmestSensor(sensors) {
     return [_.maxBy(sensors, (sensor) => sensor.temprature)];
+}
+
+function warmestNSensors(count) {
+    return function warmestNSensors(sensors) {
+
+        const sorted = _.sortBy(sensors, (sensor) => sensor.temprature);
+        return sorted.reverse().slice(0, count);
+
+    }
 }
 
 function coldestSensor(sensors) {
@@ -148,17 +115,10 @@ async function updateEcobee() {
 
         if (climate.name !== 'Away') {
 
-            climate.heatTemp = Math.floor(setting.heatTemp * 10);
-            climate.coolTemp = Math.floor(setting.cooltemp * 10);
             climate.sensors = homeSensors.map(mapSensors);
 
         } else {
 
-            const heatTemp = setting.awayHeatTemp || setting.heatTemp;
-            const coolTemp = setting.awayCoolTemp || setting.coolTemp;
-
-            climate.heatTemp = Math.floor(heatTemp * 10);
-            climate.coolTemp = Math.floor(coolTemp * 10);
             climate.sensors = awaySensors.map(mapSensors);
         }
     });
