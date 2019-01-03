@@ -4,6 +4,7 @@
     "description": "the ecobee app in a lambda for my house",
     "main": "index.js",
     "bin": {
+        "residence-prompt": "bin/residence-prompt.py",
         "current-temp": "./bin/current-temp.js"
     },
     "scripts": {
