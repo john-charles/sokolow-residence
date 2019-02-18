@@ -20,6 +20,7 @@ async function main() {
 
             console.log(`    current temperature: ${stat.getCurrentTemp()}`);
             console.log(`    equipment ${stat.getStatus()}`);
+            console.log(`    heatDelta: ${stat.stage1HeatingDifferentialTemp}`);
             console.log(`    sensors:`);
 
             const sensors = stat.getSensors();
